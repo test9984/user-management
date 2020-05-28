@@ -11,7 +11,7 @@ public class Status implements Serializable {
 	private static final long serialVersionUID = 234234523211L;
 	private Boolean isSuccess = true;
 	private String messageType = MESSAGE_TYPES.INFO;
-	private String message = CONSTANTS.BLANK;
+	private Object message = CONSTANTS.BLANK;
 	private Object data;
 
 	public Status() {

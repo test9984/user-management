@@ -46,7 +46,7 @@ public class RoleContoller {
 
 	@ApiOperation(value = "update role", response = Status.class)
 	@PutMapping("/roles")
-	public ResponseEntity<Status> updateRole(@RequestBody RoleDto role) {
+	public ResponseEntity<Status> updateRole(@RequestBody @Valid RoleDto role) {
 		return ResponseEntity.ok(new Status(CONSTANTS.SUCCESS, roleService.updateRole(role)));
 	}
 

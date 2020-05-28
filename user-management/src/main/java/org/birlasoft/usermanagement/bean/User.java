@@ -1,3 +1,4 @@
+
 package org.birlasoft.usermanagement.bean;
 
 import java.util.Date;
@@ -17,6 +18,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.DynamicUpdate;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -29,6 +31,7 @@ import lombok.ToString;
 @ToString(exclude = { "roles", "workspaces" })
 @Entity
 @Table(name = "thirdeye_user")
+@DynamicUpdate
 public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

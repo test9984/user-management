@@ -1,19 +1,21 @@
 package org.birlasoft.usermanagement.serviceImpl;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.birlasoft.usermanagement.bean.PasswordsHistory;
 import org.birlasoft.usermanagement.bean.Role;
 import org.birlasoft.usermanagement.bean.User;
 import org.birlasoft.usermanagement.bean.WorkSpace;
 import org.birlasoft.usermanagement.dto.RoleDto;
 import org.birlasoft.usermanagement.dto.UserDto;
-import org.birlasoft.usermanagement.dto.UserProfileDto;
 import org.birlasoft.usermanagement.dto.WorkSpaceDto;
 import org.birlasoft.usermanagement.exception.ObjectAlreadyExistException;
 import org.birlasoft.usermanagement.exception.ObjectNotFoundException;
+import org.birlasoft.usermanagement.repositry.PasswordsHistoryRepository;
 import org.birlasoft.usermanagement.repositry.RoleRepositry;
 import org.birlasoft.usermanagement.repositry.UserRepositry;
 import org.birlasoft.usermanagement.repositry.WorkSpaceRepositry;
@@ -37,6 +39,8 @@ public class UserServiceImpl implements UserService, CommonService<User, UserDto
 	private RoleRepositry roleRepositry;
 	@Autowired
 	private WorkSpaceRepositry workSpaceRepositry;
+	@Autowired
+	private PasswordsHistoryRepository passwordsHistoryRepository;
 
 	@Autowired
 	private ModelMapper modelMapper;
@@ -45,7 +49,7 @@ public class UserServiceImpl implements UserService, CommonService<User, UserDto
 	@Override
 	public List<UserDto> getAllUsers() {
 		List<User> userList = userRepositry.findByDeleteStatusFalse();
-		return userList.stream().map((user)->convertToDto(user,false)).collect(Collectors.toList());
+		return userList.stream().map((user) -> convertToDto(user, false)).collect(Collectors.toList());
 
 	}
 
@@ -67,37 +71,45 @@ public class UserServiceImpl implements UserService, CommonService<User, UserDto
 		if (isEmailAlreadyExist(user.getEmailAddress()))
 			throw new ObjectAlreadyExistException("this email id is already exists");
 		User user2 = convertToEntity(user);
-	//	setPassword(user2);
+		// setPassword(user2);
+		
 		return convertToDto(userRepositry.save(user2));
 	}
 
 	@Transactional
 	@Override
-	public UserDto updateUser(UserProfileDto userprofile) {
-		UserDto user=modelMapper.map(userprofile,UserDto.class);
-		userRepositry.findByIdAndDeleteStatusFalse(user.getId())
+	public UserDto updateUser(UserDto user) {
+		User userEntity = convertToEntity(user);
+		User user2 = userRepositry.findByIdAndDeleteStatusFalse(user.getId())
 				.orElseThrow(() -> new ObjectNotFoundException("User not found for this id :: " + user.getId()));
-		return convertToDto(userRepositry.save(convertToEntity(user)));
+	
+		user2.setFirstName(user.getFirstName());
+		user2.setLastName(user.getLastName());
+		user2.setRoles(userEntity.getRoles());
+		user2.setWorkspaces(userEntity.getWorkspaces());
+		return convertToDto(userRepositry.save(user2));
 	}
+
+
 
 	@Transactional(readOnly = true)
 	@Override
 	public Boolean isEmailAlreadyExist(String emailId) {
 		return userRepositry.findAllByEmailAddressAndDeleteStatusFalse(emailId).size() != 0;
 	}
-	/*private void setPassword(User user) {
-		if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-			BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-			String hashedPassword = passwordEncoder.encode(user.getPassword());
-			user.setPassword(hashedPassword);
-		}
-	}
-*/
+
+	/*
+	 * private void setPassword(User user) { if (user.getPassword() != null &&
+	 * !user.getPassword().isEmpty()) { BCryptPasswordEncoder passwordEncoder = new
+	 * BCryptPasswordEncoder(); String hashedPassword =
+	 * passwordEncoder.encode(user.getPassword()); user.setPassword(hashedPassword);
+	 * } }
+	 */
 	@Transactional
 	@Override
 	public void deleteUser(Integer userId) {
 		User user = userRepositry.findByIdAndDeleteStatusFalse(userId)
-				.orElseThrow(() -> new ObjectNotFoundException("EmpUserloyee not found for this id :: " + userId));
+				.orElseThrow(() -> new ObjectNotFoundException("User not found for this id :: " + userId));
 		user.setDeleteStatus(true);
 		userRepositry.save(user);
 
@@ -109,7 +121,8 @@ public class UserServiceImpl implements UserService, CommonService<User, UserDto
 		Set<RoleDto> roleIds = userDto.getRolesList();
 		entity.getRoles().forEach((role) -> roleIds.add(modelMapper.map(role, RoleDto.class)));
 		Set<WorkSpaceDto> workspaceIds = userDto.getWorkspacesList();
-		entity.getWorkspaces().stream().forEach((workspace) -> workspaceIds.add(modelMapper.map(workspace, WorkSpaceDto.class)));
+		entity.getWorkspaces().stream()
+				.forEach((workspace) -> workspaceIds.add(modelMapper.map(workspace, WorkSpaceDto.class)));
 
 		return userDto;
 	}
@@ -120,7 +133,8 @@ public class UserServiceImpl implements UserService, CommonService<User, UserDto
 			Set<RoleDto> roles = userDto.getRolesList();
 			entity.getRoles().forEach((role) -> roles.add(modelMapper.map(role, RoleDto.class)));
 			Set<WorkSpaceDto> workspaceIds = userDto.getWorkspacesList();
-			entity.getWorkspaces().stream().forEach((workspace) -> workspaceIds.add(modelMapper.map(workspace, WorkSpaceDto.class)));
+			entity.getWorkspaces().stream()
+					.forEach((workspace) -> workspaceIds.add(modelMapper.map(workspace, WorkSpaceDto.class)));
 		}
 		return userDto;
 	}
@@ -131,12 +145,42 @@ public class UserServiceImpl implements UserService, CommonService<User, UserDto
 		User user = modelMapper.map(dto, User.class);
 		Set<Role> roles = new HashSet<Role>();
 		Set<WorkSpace> workspaces = new HashSet<WorkSpace>();
-		dto.getRolesList().stream().forEach((id) -> roles.add(roleRepositry.findByIdAndDeleteStatusFalse(id.getId()).get()));
+		dto.getRolesList().stream()
+				.forEach((id) -> roles.add(roleRepositry.findByIdAndDeleteStatusFalse(id.getId())
+						.orElseThrow(() -> new ObjectNotFoundException("Role not found for this id :: " + id.getId()))
+						
+						));
 		dto.getWorkspacesList().stream()
-				.forEach((id) -> workspaces.add(workSpaceRepositry.findByIdAndDeleteStatusFalse(id.getId()).get()));
+				.forEach((id) -> workspaces.add(workSpaceRepositry.findByIdAndDeleteStatusFalse(id.getId())
+						.orElseThrow(() -> new ObjectNotFoundException("Workspace not found for this id :: " + id.getId()))
+						));
 		user.setRoles(roles);
 		user.setWorkspaces(workspaces);
 		return user;
+	}
+
+	@Transactional(readOnly = true)
+	@Override
+	public List<User> findAll() {
+		return userRepositry.findAll();
+	}
+
+	@Transactional
+	@Override
+	public void updatePassword(Integer id, String password) {
+		PasswordsHistory history=new PasswordsHistory();
+		history.setPassword(password);
+		history.setUid(id);
+		history.setUpdatedDate(new Date());
+		passwordsHistoryRepository.save(history);
+		userRepositry.updatePassword(id, password);
+	}
+
+	@Override
+	public UserDto updateUserProfile(UserDto user) {
+		userRepositry.findByIdAndDeleteStatusFalse(user.getId())
+		.orElseThrow(() -> new ObjectNotFoundException("User not found for this id :: " + user.getId()));
+return convertToDto(userRepositry.save(convertToEntity(user)));
 	}
 
 }

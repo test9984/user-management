@@ -3,7 +3,7 @@ package org.birlasoft.usermanagement.dto;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -14,8 +14,9 @@ import lombok.Data;
 @ApiModel(description = "Role")
 public class RoleDto {
 	private Integer id;
-	@NotNull(message="vivek")
+	@NotBlank(message= "${error.userRole.title}")
 	private String roleName;
+	@NotBlank(message="${error.userRole.description}")
 	private String roleDescription;
 	@JsonIgnore
 	private Boolean deleteStatus = Boolean.FALSE;

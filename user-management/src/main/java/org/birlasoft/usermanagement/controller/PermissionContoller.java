@@ -1,6 +1,10 @@
 package org.birlasoft.usermanagement.controller;
 
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import javax.validation.Valid;
 
 import org.birlasoft.usermanagement.contants.CONSTANTS;
 import org.birlasoft.usermanagement.dto.PermissionDto;
@@ -29,11 +33,12 @@ public class PermissionContoller {
 	@GetMapping("/permissions")
 	@ApiOperation(value = "View a list of available Permission", response = Status.class)
 	public ResponseEntity<Status> getPermissions() {
-		return ResponseEntity.ok(new Status(CONSTANTS.SUCCESS, permissionService.getAllPermissons().stream()
-				.collect(Collectors.groupingBy(PermissionDto::getPermissionCatogery,
-						Collectors.toList()
+		
+		 Map<String, List<PermissionDto>> permissionMap = permissionService.getAllPermissons().stream()
+			.collect(Collectors.groupingBy(PermissionDto::getPermissionCatogery, Collectors.toList()
 
-				))));
+			));
+		return ResponseEntity.ok(new Status(CONSTANTS.SUCCESS,permissionMap));
 	}
 
 	@GetMapping("/permissions/{permmissionId}")
@@ -42,9 +47,17 @@ public class PermissionContoller {
 		return ResponseEntity.ok(new Status(CONSTANTS.SUCCESS, permissionService.getPermission(permissionId)));
 	}
 
+	@GetMapping("/permissions/category")
+	@ApiOperation(value = " Get Permission category ", response = Status.class)
+	public ResponseEntity<Status> getPermissionCategory() {
+		return ResponseEntity.ok(new Status(CONSTANTS.SUCCESS, permissionService.getAllPermissons().stream()
+				.collect(Collectors.groupingBy(PermissionDto::getPermissionCatogery, Collectors.counting()
+				))));
+	}
+
 	@PostMapping("/permissions")
 	@ApiOperation(value = "add new permission Permission", response = Status.class)
-	public ResponseEntity<Status> createPermission(@RequestBody PermissionDto permission) {
+	public ResponseEntity<Status> createPermission(@RequestBody @Valid PermissionDto permission) {
 		return ResponseEntity.ok(new Status(CONSTANTS.SUCCESS, permissionService.createPermission(permission)));
 	}
 

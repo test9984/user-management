@@ -1,5 +1,7 @@
 package org.birlasoft.usermanagement.controller;
 
+import javax.validation.Valid;
+
 import org.birlasoft.usermanagement.contants.CONSTANTS;
 import org.birlasoft.usermanagement.dto.Status;
 import org.birlasoft.usermanagement.dto.WorkSpaceDto;
@@ -32,7 +34,7 @@ public class WorkspaceContoller {
 
 	@PostMapping("/workspaces")
 	@ApiOperation(value = "Create new workspace", response = Status.class)
-	public ResponseEntity<Status> createWorkspace(@RequestBody WorkSpaceDto workSpaceDto) {
+	public ResponseEntity<Status> createWorkspace(@RequestBody @Valid WorkSpaceDto workSpaceDto) {
 		return ResponseEntity.ok(new Status(CONSTANTS.SUCCESS, workSpaceService.createWorkspace(workSpaceDto)));
 	}
 

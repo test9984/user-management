@@ -8,8 +8,6 @@ import java.util.stream.Collectors;
 
 import javax.validation.ConstraintViolationException;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,22 +20,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @ControllerAdvice
 public class ResponseEntityHandler extends ResponseEntityExceptionHandler {
-	private final MessageSource messageSource;
 
-	@Autowired
-	public ResponseEntityHandler(MessageSource messageSource) {
-		this.messageSource = messageSource;
-	}
 
-	/*
-	 * @ExceptionHandler(Exception.class) public final ResponseEntity<Object>
-	 * handleAllException(Exception ex, WebRequest request) throws Exception {
-	 * ThirdeyeExceptionResponce exceptionResponce = new
-	 * ThirdeyeExceptionResponce(new Date(), ex.getMessage(),
-	 * request.getDescription(false)); return new
-	 * ResponseEntity<Object>(exceptionResponce, HttpStatus.INTERNAL_SERVER_ERROR);
-	 * }
-	 */
 
 	@ExceptionHandler(ThirdeyeException.class)
 	public final ResponseEntity<Object> handleThirdeyeException(ThirdeyeException ex, WebRequest request)

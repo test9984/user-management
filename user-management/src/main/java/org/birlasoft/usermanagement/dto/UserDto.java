@@ -53,7 +53,7 @@ public class UserDto {
 	private Date updatedDate;
 	private Boolean firstLogin = false;
 	private Boolean isEditable = false;
-
+	private Boolean isUserProfile = false;
 	private Set<RoleDto> rolesList = new HashSet<RoleDto>();
 
 	private Set<WorkSpaceDto> workspacesList = new HashSet<WorkSpaceDto>();;
